@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -95,10 +96,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val onResultListener = View.OnClickListener {
-        val postfix = helper.infixToPostfix(tvDisplay.text.toString() + ")")
-        postfix.push(')')
-        postfix.elements.reverse()
-        tvDisplay.append(" = " + helper.evaluatePostfixExpression(postfix))
+        try {
+            val postfix = helper.infixToPostfix(tvDisplay.text.toString() + ")")
+            postfix.push(')')
+            postfix.elements.reverse()
+            tvDisplay.append(" = " + helper.evaluatePostfixExpression(postfix))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Возникла ошибка, проверьте ваше выражение", Toast.LENGTH_LONG).show()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
