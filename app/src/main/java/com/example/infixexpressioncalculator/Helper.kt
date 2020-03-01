@@ -37,6 +37,7 @@ class Helper {
         val stack = Stack()
         val postfix = Stack()
         stack.push('(')
+        var i = 0
         for (char in infix) {
             when (char) {
                 '(' -> stack.push(char)
@@ -50,7 +51,7 @@ class Helper {
                     operand += char
                 }
 
-                '+', '-', '*', '/' -> {
+                '+', '*', '/' -> {
                     if (operandFlag) {
                         operandFlag = false
                         postfix.push(operand.toDouble())
@@ -60,6 +61,23 @@ class Helper {
                         postfix.push(stack.pop()!!)
                     }
                     stack.push(char)
+                }
+                '-' -> {
+                    // проверка на унарный минус
+                    if (i == 0 || infix.elementAt(i-1) == '(') {
+                        operandFlag = true
+                        operand += char
+                    } else {
+                        if (operandFlag) {
+                            operandFlag = false
+                            postfix.push(operand.toDouble())
+                            operand = ""
+                        }
+                        while (precedenceOf(stack.peek()) >= precedenceOf(char)) {
+                            postfix.push(stack.pop()!!)
+                        }
+                        stack.push(char)
+                    }
                 }
 
                 ')' -> {
@@ -74,6 +92,7 @@ class Helper {
                     stack.pop()
                 }
             }
+            i++
         }
         return postfix
     }
