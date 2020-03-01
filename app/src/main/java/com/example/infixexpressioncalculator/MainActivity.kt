@@ -10,33 +10,100 @@ class MainActivity : AppCompatActivity() {
 
     private val helper = Helper()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+    private val digitListener = View.OnClickListener { view ->
+        val button = view as Button
 
-        val digitListener = View.OnClickListener { view ->
-            val button = view as Button
-
-            if (tvDisplay.text.isEmpty()) {
-                tvDisplay.text = button.text
-            } else {
-                when (tvDisplay.text.last()) {
-                    in '1'..'9','+', '-', '*', '/', '(', '.' -> tvDisplay.append(button.text)
-                    // для ситуаций, когда пользователь вводит цифры после 0, не поставив десятичную точку
-                    '0' -> {
-                        if (tvDisplay.text.length == 1) {
-                            tvDisplay.append("." + button.text)
-                        } else {
-                            val symbolBefore0 = tvDisplay.text.lastIndex - 1
-                            when (tvDisplay.text[symbolBefore0]) {
-                                '+', '-', '*', '/', '(' -> tvDisplay.append("." + button.text)
-                                in '0'..'9', '.' -> tvDisplay.append(button.text)
-                            }
+        if (tvDisplay.text.isEmpty()) {
+            tvDisplay.text = button.text
+        } else {
+            when (tvDisplay.text.last()) {
+                in '1'..'9', '+', '-', '*', '/', '(', '.' -> tvDisplay.append(button.text)
+                // для ситуаций, когда пользователь вводит цифры после 0, не поставив десятичную точку
+                '0' -> {
+                    if (tvDisplay.text.length == 1) {
+                        tvDisplay.append("." + button.text)
+                    } else {
+                        val symbolBefore0 = tvDisplay.text.lastIndex - 1
+                        when (tvDisplay.text[symbolBefore0]) {
+                            '+', '-', '*', '/', '(' -> tvDisplay.append("." + button.text)
+                            in '0'..'9', '.' -> tvDisplay.append(button.text)
                         }
                     }
                 }
             }
         }
+    }
+
+    private val operationListener = View.OnClickListener { view ->
+        val operation = view as Button
+        if (tvDisplay.text.isNotEmpty()) {
+            when (tvDisplay.text.last()) {
+                in '0'..'9', ')' -> tvDisplay.append(operation.text)
+            }
+        }
+    }
+
+    private val minusListener = View.OnClickListener { view ->
+        val operation = view as Button
+        if (tvDisplay.text.isNotEmpty()) {
+            when (tvDisplay.text.last()) {
+                in '0'..'9', '(', ')' -> tvDisplay.append(operation.text)
+            }
+        } else {
+            tvDisplay.append(operation.text)
+        }
+    }
+
+    private val pointListener = View.OnClickListener {
+        if (tvDisplay.text.isNotEmpty()) {
+            when (tvDisplay.text.last()) {
+                in '0'..'9' -> tvDisplay.append(".")
+                '+', '-', '*', '/', '(' -> tvDisplay.append("0.")
+            }
+        } else {
+            tvDisplay.append("0.")
+        }
+    }
+
+    private val closeParListener = View.OnClickListener {
+        if (tvDisplay.text.isNotEmpty()) {
+            when (tvDisplay.text.last()) {
+                in '0'..'9', ')' -> tvDisplay.append(")")
+            }
+        }
+    }
+
+    private val openParListener = View.OnClickListener {
+        if (tvDisplay.text.isNotEmpty()) {
+            when (tvDisplay.text.last()) {
+                '+', '-', '*', '/', '(' -> tvDisplay.append("(")
+            }
+        } else {
+            tvDisplay.append("(")
+        }
+    }
+
+    private val clearDisplayListener = View.OnClickListener {
+        tvDisplay.text = ""
+    }
+
+    private val deleteButtonListener = View.OnClickListener {
+        if (tvDisplay.text.isNotEmpty()) {
+            val str = tvDisplay.text.dropLast(1)
+            tvDisplay.text = str
+        }
+    }
+
+    private val onResultListener = View.OnClickListener {
+        val postfix = helper.infixToPostfix(tvDisplay.text.toString() + ")")
+        postfix.push(')')
+        postfix.elements.reverse()
+        tvDisplay.append(" = " + helper.evaluatePostfixExpression(postfix))
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
         btn0.setOnClickListener(digitListener)
         btn1.setOnClickListener(digitListener)
@@ -49,87 +116,20 @@ class MainActivity : AppCompatActivity() {
         btn8.setOnClickListener(digitListener)
         btn9.setOnClickListener(digitListener)
 
-        val operationListener = View.OnClickListener { view ->
-            val operation = view as Button
-            if (tvDisplay.text.isNotEmpty()) {
-                when (tvDisplay.text.last()) {
-                    in '0'..'9', ')' -> tvDisplay.append(operation.text)
-                }
-            }
-        }
-
-        val minusListener = View.OnClickListener { view ->
-            val operation = view as Button
-            if (tvDisplay.text.isNotEmpty()) {
-                when (tvDisplay.text.last()) {
-                    in '0'..'9', '(', ')' -> tvDisplay.append(operation.text)
-                }
-            } else {
-                tvDisplay.append(operation.text)
-            }
-        }
-
         btnPlus.setOnClickListener(operationListener)
         btnMinus.setOnClickListener(minusListener)
         btnMulti.setOnClickListener(operationListener)
         btnDivide.setOnClickListener(operationListener)
 
-        val pointListener = View.OnClickListener {
-            if (tvDisplay.text.isNotEmpty()) {
-                when (tvDisplay.text.last()) {
-                    in '0'..'9' -> tvDisplay.append(".")
-                    '+', '-', '*', '/', '(' -> tvDisplay.append("0.")
-                }
-            } else {
-                tvDisplay.append("0.")
-            }
-        }
-
         btnPoint.setOnClickListener(pointListener)
-
-        val openParListener = View.OnClickListener {
-            if (tvDisplay.text.isNotEmpty()) {
-                when (tvDisplay.text.last()) {
-                    '+', '-', '*', '/', '(' -> tvDisplay.append("(")
-                }
-            } else {
-                tvDisplay.append("(")
-            }
-        }
 
         btnOpenPar.setOnClickListener(openParListener)
 
-        val closeParListener = View.OnClickListener {
-            if (tvDisplay.text.isNotEmpty()) {
-                when (tvDisplay.text.last()) {
-                    in '0'..'9', ')' -> tvDisplay.append(")")
-                }
-            }
-        }
-
         btnClosePar.setOnClickListener(closeParListener)
-
-        val clearDisplayListener = View.OnClickListener {
-            tvDisplay.text = ""
-        }
 
         btnClear.setOnClickListener(clearDisplayListener)
 
-        val deleteButtonListener = View.OnClickListener {
-            if (tvDisplay.text.isNotEmpty()) {
-                val str = tvDisplay.text.dropLast(1)
-                tvDisplay.text = str
-            }
-        }
-
         btnDelete.setOnClickListener(deleteButtonListener)
-
-        val onResultListener = View.OnClickListener {
-            val postfix = helper.infixToPostfix(tvDisplay.text.toString() + ")")
-            postfix.push(')')
-            postfix.elements.reverse()
-            tvDisplay.append(" = " + helper.evaluatePostfixExpression(postfix))
-        }
 
         btnResult.setOnClickListener(onResultListener)
     }
