@@ -11,6 +11,7 @@ class MainActivity : AppCompatActivity() {
 
     private val helper = Helper()
 
+    // Обработка ввода цифр
     private val digitListener = View.OnClickListener { view ->
         val button = view as Button
 
@@ -19,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             when (tvDisplay.text.last()) {
                 in '1'..'9', '+', '-', '*', '/', '(', '.' -> tvDisplay.append(button.text)
-                // для ситуаций, когда пользователь вводит цифры после 0, не поставив десятичную точку
+                // Для ситуаций, когда пользователь вводит цифры после 0, не поставив десятичную точку
                 '0' -> {
                     if (tvDisplay.text.length == 1) {
                         tvDisplay.append("." + button.text)
@@ -35,6 +36,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Обработка ввода операций +, *, /
     private val operationListener = View.OnClickListener { view ->
         val operation = view as Button
         if (tvDisplay.text.isNotEmpty()) {
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Обработка ввода минуса
     private val minusListener = View.OnClickListener { view ->
         val operation = view as Button
         if (tvDisplay.text.isNotEmpty()) {
@@ -55,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Обработка ввода десятичной точки
     private val pointListener = View.OnClickListener {
         if (tvDisplay.text.isNotEmpty()) {
             when (tvDisplay.text.last()) {
@@ -66,6 +70,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Обработка ввода ")"
     private val closeParListener = View.OnClickListener {
         if (tvDisplay.text.isNotEmpty()) {
             when (tvDisplay.text.last()) {
@@ -74,6 +79,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Обработка ввода "("
     private val openParListener = View.OnClickListener {
         if (tvDisplay.text.isNotEmpty()) {
             when (tvDisplay.text.last()) {
@@ -84,10 +90,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Очистка рабочей строки с выражением
     private val clearDisplayListener = View.OnClickListener {
         tvDisplay.text = ""
     }
 
+    // Удаление последнего символа в выражении
     private val deleteButtonListener = View.OnClickListener {
         if (tvDisplay.text.isNotEmpty()) {
             val str = tvDisplay.text.dropLast(1)
@@ -95,6 +103,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Вычисление результата выражения
     private val onResultListener = View.OnClickListener {
         try {
             val postfix = helper.infixToPostfix(tvDisplay.text.toString() + ")")

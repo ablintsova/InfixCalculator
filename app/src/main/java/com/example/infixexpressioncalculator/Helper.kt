@@ -1,22 +1,17 @@
 package com.example.infixexpressioncalculator
 
 class Helper {
-    private fun precedenceOf(symbol: Char): Int {
-        when (symbol) {
+
+    // Проверка приоритета операции
+    private fun precedenceOf(operation: Any?): Int {
+        when (operation) {
             '*', '/' -> return 2
             '+', '-' -> return 1
             else -> return 0
         }
     }
 
-    private fun precedenceOf(symbol: Any?): Int {
-        when (symbol) {
-            '*', '/' -> return 2
-            '+', '-' -> return 1
-            else -> return 0
-        }
-    }
-
+    // Выполнение указанной операции над двумя операндами
     private fun performOperation(op1: String, op2: String, operation: String): Any? {
         val A = op2.toDouble()
         val B = op1.toDouble()
@@ -31,72 +26,69 @@ class Helper {
         return result
     }
 
+    // Перевод выражения пользователя в постфиксную нотацию
     fun infixToPostfix(infix: String): Stack {
         var operand = ""
-        var operandFlag = false
+        var isReadingOperand = false
         val stack = Stack()
         val postfix = Stack()
         stack.push('(')
-        var i = 0
-        for (char in infix) {
+
+        // Закончить считывать число в строке и занести его в постфиксный стек
+        fun pushOperandToStack() {
+            if (isReadingOperand) {
+                isReadingOperand = false
+                postfix.push(operand.toDouble())
+                operand = ""
+            }
+        }
+
+        // Добавить в постфиксный стек операции, у которых приоритет больше либо равен приоритету текущей операции
+        fun pushOperationToStack(operation: Char) {
+            while (precedenceOf(stack.peek()) >= precedenceOf(operation)) {
+                postfix.push(stack.pop()!!)
+            }
+            stack.push(operation)
+        }
+
+        for ((index, char) in infix.withIndex()) {
             when (char) {
                 '(' -> stack.push(char)
 
-                in '0'..'9' -> {
-                    operandFlag = true
-                    operand += char
-                }
-
-                '.' -> {
+                in '0'..'9', '.' -> {
+                    isReadingOperand = true
                     operand += char
                 }
 
                 '+', '*', '/' -> {
-                    if (operandFlag) {
-                        operandFlag = false
-                        postfix.push(operand.toDouble())
-                        operand = ""
-                    }
-                    while (precedenceOf(stack.peek()) >= precedenceOf(char)) {
-                        postfix.push(stack.pop()!!)
-                    }
-                    stack.push(char)
+                    pushOperandToStack()
+                    pushOperationToStack(char)
                 }
+
                 '-' -> {
-                    // проверка на унарный минус
-                    if (i == 0 || infix.elementAt(i-1) == '(') {
-                        operandFlag = true
+                    // Проверка на унарный минус
+                    if (index == 0 || infix.elementAt(index-1) == '(') {
+                        isReadingOperand = true
                         operand += char
                     } else {
-                        if (operandFlag) {
-                            operandFlag = false
-                            postfix.push(operand.toDouble())
-                            operand = ""
-                        }
-                        while (precedenceOf(stack.peek()) >= precedenceOf(char)) {
-                            postfix.push(stack.pop()!!)
-                        }
-                        stack.push(char)
+                        pushOperandToStack()
+                        pushOperationToStack(char)
                     }
                 }
 
                 ')' -> {
-                    if (operandFlag) {
-                        operandFlag = false
-                        postfix.push(operand.toDouble())
-                        operand = ""
-                    }
+                    pushOperandToStack()
                     while (stack.peek()!! != '(') {
                         postfix.push(stack.pop()!!)
                     }
                     stack.pop()
                 }
             }
-            i++
         }
         return postfix
     }
 
+    // Вычислить постфиксное выражение
     fun evaluatePostfixExpression(postfix: Stack): Any? {
         val stack = Stack()
         var result: Any? = ""
